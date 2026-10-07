@@ -44,7 +44,9 @@ __screenshots__/
 Thumbs.db
 
 # AI tooling, working notes and local-only instructions.
-# Kept out of the published repository on purpose: the commit history should
-# contain the project itself, not the material used to plan and build it.
 .ai/
 *.local.md
+.agents/
+
+# Local token-usage log written by the harness into whatever directory it runs in.
+dsh-usage/
