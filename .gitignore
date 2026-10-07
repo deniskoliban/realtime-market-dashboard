@@ -44,9 +44,10 @@ __screenshots__/
 Thumbs.db
 
 # AI tooling, working notes and local-only instructions.
-.ai/
 *.local.md
 .agents/
+.dsh/
 
-# Local token-usage log written by the harness into whatever directory it runs in.
+# Usage and cost tracker plugin: its records, exports and startup log.
 dsh-usage/
+dsh-usage-boot.log
