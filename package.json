@@ -3,8 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "npm run build:wasm",
     "start": "ng serve",
+    "prebuild": "npm run build:wasm",
     "build": "ng build",
+    "pretest": "npm run build:wasm",
+    "build:wasm": "cd wasm && wasm-pack build --target web --out-dir pkg",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -24,6 +28,7 @@
     "@angular/build": "^22.2.2",
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.0",
+    "@types/node": "^26.6.4",
     "jsdom": "^30.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",

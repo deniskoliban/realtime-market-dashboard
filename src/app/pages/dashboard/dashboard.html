@@ -1,1 +1,44 @@
-<p>dashboard works!</p>
+<section>
+  <h2>Dashboard</h2>
+
+  <p>One click asks the Wasm generator for {{ batchSize }} market updates and prints all of them.</p>
+
+  <button type="button" (click)="nextBatch()">next batch</button>
+
+  @if (updates().length > 0) {
+    <p>updates in this batch: {{ updates().length }}</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>instrument</th>
+          <th>bid</th>
+          <th>ask</th>
+          <th>trade price</th>
+          <th>trade quantity</th>
+          <th>bid quantity</th>
+          <th>ask quantity</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (update of updates(); track $index) {
+          <tr>
+            <td>{{ $index }}</td>
+            <td>{{ update.instrument }}</td>
+            <td>{{ update.bidCents / 100 | currency }}</td>
+            <td>{{ update.askCents / 100 | currency }}</td>
+            <td>{{ update.tradePriceCents / 100 | currency }}</td>
+            <td>{{ update.tradeQuantity }}</td>
+            <td>{{ update.bidQuantity }}</td>
+            <td>{{ update.askQuantity }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (error(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+</section>

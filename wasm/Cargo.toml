@@ -1,0 +1,21 @@
+[package]
+name = "market-generator"
+version = "0.1.0"
+edition = "2024"
+description = "Simulated market data generator, compiled to WebAssembly"
+repository = "https://github.com/deniskoliban/realtime-market-dashboard"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2.129"
+fastrand = "2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -26,6 +26,17 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Add the WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
+
+      - name: Test the generator
+        run: cargo test --manifest-path wasm/Cargo.toml
+
       - name: Install dependencies
         run: npm ci
 
@@ -56,6 +67,14 @@ jobs:
         with:
           node-version: 24
           cache: npm
+
+      - name: Add the WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
 
       - name: Install dependencies
         run: npm ci

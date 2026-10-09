@@ -11,6 +11,15 @@
 npm-debug.log
 yarn-error.log
 
+# npm cache redirected into the workspace to work around sandbox write limits
+.npm-cache/
+
+# Rust
+/wasm/target
+
+# wasm-pack output, rebuilt from wasm/src by `npm run build:wasm`
+/wasm/pkg
+
 # IDEs and editors
 .idea/
 .project
@@ -47,6 +56,7 @@ Thumbs.db
 *.local.md
 .agents/
 .dsh/
+.dsh-patches/
 
 # Usage and cost tracker plugin: its records, exports and startup log.
 dsh-usage/
