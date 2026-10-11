@@ -58,6 +58,14 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "test": {
+              "fileReplacements": [
+                {
+                  "replace": "wasm/pkg/market_generator.js",
+                  "with": "src/app/services/market-generator.mock.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -75,7 +83,10 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "realtime-market-dashboard:build:test"
+          }
         }
       }
     }

@@ -1,34 +1,50 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NEVER, Observable } from 'rxjs';
 
 import { Dashboard } from './dashboard';
-import { GENERATOR_LOADER } from '../../services/market-generator';
-import init from '@wasm/market_generator.js';
+import { MarketGeneratorService } from '../../services/market-generator';
+import { DEFAULT_PRODUCER_SETTINGS } from '../../services/market-worker-protocol';
+import type { InstrumentMetrics, ProducerSettings } from '../../services/market-worker-protocol';
 
-const WASM_PATH = join(process.cwd(), 'wasm/pkg/market_generator_bg.wasm');
+class MockGenerator {
+  readonly startedWith: ProducerSettings[] = [];
+  stops = 0;
+
+  start$(settings: ProducerSettings): Observable<InstrumentMetrics[]> {
+    this.startedWith.push(settings);
+
+    return NEVER;
+  }
+
+  stop(): void {
+    this.stops += 1;
+  }
+}
 
 describe('Dashboard', () => {
   let fixture: ComponentFixture<Dashboard>;
+  let generator: MockGenerator;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Dashboard],
-      providers: [
-        {
-          provide: GENERATOR_LOADER,
-          useValue: async () => init({ module_or_path: readFileSync(WASM_PATH) }),
-        },
-      ],
+      providers: [MockGenerator, { provide: MarketGeneratorService, useExisting: MockGenerator }],
     }).compileComponents();
 
+    generator = TestBed.inject(MockGenerator);
     fixture = TestBed.createComponent(Dashboard);
-    await fixture.componentInstance.ready;
     await fixture.whenStable();
   });
 
-  it('should create', () => {
-    expect(fixture.componentInstance).toBeTruthy();
+  it('starts the run with the default settings', () => {
+    fixture.componentInstance.start();
+
+    expect(generator.startedWith).toEqual([DEFAULT_PRODUCER_SETTINGS]);
+  });
+
+  it('stops the run', () => {
+    fixture.componentInstance.stop();
+
+    expect(generator.stops).toBe(1);
   });
 });

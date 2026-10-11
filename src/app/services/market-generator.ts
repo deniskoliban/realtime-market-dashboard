@@ -1,55 +1,62 @@
-import { InjectionToken } from '@angular/core';
+import { Injectable, InjectionToken, inject } from '@angular/core';
+import { Observable, defer, filter, fromEvent, map, merge } from 'rxjs';
 
-import init, { MarketGenerator } from '@wasm/market_generator.js';
+import { DEFAULT_PUBLISH_INTERVAL_MS } from './market-worker-protocol';
 
-export interface MarketUpdate {
-  instrument: string;
-  bidCents: number;
-  askCents: number;
-  tradePriceCents: number;
-  tradeQuantity: number;
-  bidQuantity: number;
-  askQuantity: number;
-}
+import type {
+  InstrumentMetrics,
+  ProducerSettings,
+  WorkerRequest,
+  WorkerResponse,
+} from './market-worker-protocol';
 
-export type GeneratorLoader = () => Promise<unknown>;
-
-export const GENERATOR_LOADER = new InjectionToken<GeneratorLoader>('GENERATOR_LOADER', {
+export const MARKET_WORKER = new InjectionToken<Worker>('MARKET_WORKER', {
   providedIn: 'root',
-  factory: () => async () => {
-    const response = await fetch(new URL('market_generator_bg.wasm', document.baseURI));
-    return init({ module_or_path: response });
-  },
+  factory: () =>
+    new Worker(new URL('./market-generator.worker', import.meta.url), { type: 'module' }),
 });
 
-export const INSTRUMENTS = ['ALFA', 'BETA', 'GAMMA', 'DELTA', 'EPSILON'];
-
+@Injectable({ providedIn: 'root' })
 export class MarketGeneratorService {
-  private generator: MarketGenerator | null = null;
+  private readonly worker = inject(MARKET_WORKER);
+  private currentRunId = 0;
 
-  async load(loader: GeneratorLoader, seed: number): Promise<void> {
-    await loader();
-    this.generator = new MarketGenerator(INSTRUMENTS.length, seed);
+  start$(settings: ProducerSettings): Observable<InstrumentMetrics[]> {
+    return defer(() => {
+      const runId = (this.currentRunId += 1);
+
+      this.worker.postMessage({
+        kind: 'start',
+        runId,
+        seed: Date.now(),
+        settings,
+        publishIntervalMs: DEFAULT_PUBLISH_INTERVAL_MS,
+      } satisfies WorkerRequest);
+
+      return this.watchRun$(runId);
+    });
   }
 
-  nextBatch(count: number): MarketUpdate[] {
-    if (this.generator === null) {
-      throw new Error('the generator is not loaded');
-    }
-
-    const batch = this.generator.nextBatch(count);
-    const updates: MarketUpdate[] = [];
-    for (let offset = 0; offset < batch.length; offset += 7) {
-      updates.push({
-        instrument: INSTRUMENTS[batch[offset]],
-        bidCents: batch[offset + 1],
-        askCents: batch[offset + 2],
-        tradePriceCents: batch[offset + 3],
-        tradeQuantity: batch[offset + 4],
-        bidQuantity: batch[offset + 5],
-        askQuantity: batch[offset + 6],
-      });
-    }
-    return updates;
+  stop(): void {
+    this.worker.postMessage({ kind: 'stop' } satisfies WorkerRequest);
   }
+
+  private watchRun$(runId: number): Observable<InstrumentMetrics[]> {
+    return merge(
+      fromEvent<MessageEvent<WorkerResponse>>(this.worker, 'message').pipe(
+        map((event) => event.data),
+        filter((response) => response.runId === runId),
+        map((response) =>
+          response.kind === 'error' ? failWith(response.detail) : response.metrics,
+        ),
+      ),
+      fromEvent<ErrorEvent>(this.worker, 'error').pipe(
+        map((event) => failWith(event.message || 'The generator worker failed to start.')),
+      ),
+    );
+  }
+}
+
+function failWith(detail: string): never {
+  throw new Error(detail);
 }

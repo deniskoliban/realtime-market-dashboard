@@ -1,49 +1,65 @@
-import { Component, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 
-import {
-  GENERATOR_LOADER,
-  MarketGeneratorService,
-  MarketUpdate,
-} from '../../services/market-generator';
-
-const BATCH_SIZE = 30;
-const SEED = 42;
+import { MarketGeneratorService } from '../../services/market-generator';
+import { DEFAULT_PRODUCER_SETTINGS } from '../../services/market-worker-protocol';
+import type { InstrumentMetrics } from '../../services/market-worker-protocol';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, DecimalPipe],
   styleUrl: './dashboard.scss',
   templateUrl: './dashboard.html',
 })
 export class Dashboard {
-  private readonly generator = new MarketGeneratorService();
-  private readonly loadGenerator = inject(GENERATOR_LOADER);
+  private readonly generator = inject(MarketGeneratorService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly run = signal<Subscription | null>(null);
 
-  readonly batchSize: number = BATCH_SIZE;
-  readonly updates = signal<MarketUpdate[]>([]);
-  readonly error = signal<string | null>(null);
-  readonly ready: Promise<void>;
+  readonly intervalMs = DEFAULT_PRODUCER_SETTINGS.batchIntervalMs;
+  readonly updatesPerBatch = DEFAULT_PRODUCER_SETTINGS.updatesPerBatch;
+  readonly metrics = signal<InstrumentMetrics[]>([]);
+  readonly snapshots = signal(0);
+  readonly failure = signal<string | null>(null);
+  readonly status = computed(() => {
+    if (this.failure() !== null) {
+      return 'failed';
+    }
 
-  constructor() {
-    this.ready = this.load();
+    return this.run() === null ? 'idle' : 'running';
+  });
+
+  start(): void {
+    this.run()?.unsubscribe();
+    this.failure.set(null);
+    this.snapshots.set(0);
+    this.metrics.set([]);
+
+    this.run.set(
+      this.generator
+        .start$(DEFAULT_PRODUCER_SETTINGS)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (metrics) => this.receive(metrics),
+          error: (cause) => this.fail(cause),
+        }),
+    );
   }
 
-  private async load(): Promise<void> {
-    this.error.set(null);
-    try {
-      await this.generator.load(this.loadGenerator, SEED);
-    } catch (cause) {
-      this.error.set(`the generator did not load: ${String(cause)}`);
-    }
+  stop(): void {
+    this.run()?.unsubscribe();
+    this.run.set(null);
+    this.generator.stop();
   }
 
-  nextBatch(): void {
-    this.error.set(null);
-    try {
-      this.updates.set(this.generator.nextBatch(BATCH_SIZE));
-    } catch (cause) {
-      this.error.set(`generation failed: ${String(cause)}`);
-    }
+  private receive(metrics: InstrumentMetrics[]): void {
+    this.snapshots.update((count) => count + 1);
+    this.metrics.set(metrics);
+  }
+
+  private fail(cause: unknown): void {
+    this.failure.set(cause instanceof Error ? cause.message : String(cause));
   }
 }

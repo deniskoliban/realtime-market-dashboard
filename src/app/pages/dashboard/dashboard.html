@@ -1,44 +1,41 @@
 <section>
   <h2>Dashboard</h2>
 
-  <p>One click asks the Wasm generator for {{ batchSize }} market updates and prints all of them.</p>
+  <p>producer: {{ updatesPerBatch }} updates every {{ intervalMs }} ms</p>
+  <p>status: {{ status() }} · snapshots received: {{ snapshots() }}</p>
 
-  <button type="button" (click)="nextBatch()">next batch</button>
+  <button type="button" (click)="start()">start generation</button>
+  <button type="button" (click)="stop()">stop</button>
 
-  @if (updates().length > 0) {
-    <p>updates in this batch: {{ updates().length }}</p>
+  @if (failure(); as detail) {
+    <p class="error">The run stopped after an error.</p>
+    <p class="detail">{{ detail }}</p>
+  }
 
+  @if (metrics().length > 0) {
     <table>
       <thead>
         <tr>
-          <th>#</th>
           <th>instrument</th>
-          <th>bid</th>
-          <th>ask</th>
-          <th>trade price</th>
-          <th>trade quantity</th>
-          <th>bid quantity</th>
-          <th>ask quantity</th>
+          <th>last trade</th>
+          <th>spread</th>
+          <th>volume</th>
+          <th>VWAP</th>
+          <th>imbalance</th>
         </tr>
       </thead>
       <tbody>
-        @for (update of updates(); track $index) {
+        @for (row of metrics(); track row.instrument) {
           <tr>
-            <td>{{ $index }}</td>
-            <td>{{ update.instrument }}</td>
-            <td>{{ update.bidCents / 100 | currency }}</td>
-            <td>{{ update.askCents / 100 | currency }}</td>
-            <td>{{ update.tradePriceCents / 100 | currency }}</td>
-            <td>{{ update.tradeQuantity }}</td>
-            <td>{{ update.bidQuantity }}</td>
-            <td>{{ update.askQuantity }}</td>
+            <td>{{ row.instrument }}</td>
+            <td>{{ row.lastTradeCents === null ? '—' : (row.lastTradeCents / 100 | currency) }}</td>
+            <td>{{ row.spreadCents === null ? '—' : (row.spreadCents / 100 | currency) }}</td>
+            <td>{{ row.volume }}</td>
+            <td>{{ row.vwapCents === null ? '—' : (row.vwapCents / 100 | currency) }}</td>
+            <td>{{ row.imbalance === null ? '—' : (row.imbalance | number: '1.2-2') }}</td>
           </tr>
         }
       </tbody>
     </table>
-  }
-
-  @if (error(); as message) {
-    <p class="error">{{ message }}</p>
   }
 </section>

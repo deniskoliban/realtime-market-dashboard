@@ -11,11 +11,16 @@ td {
   text-align: right;
 }
 
-th:nth-child(-n + 2),
-td:nth-child(-n + 2) {
+th:first-child,
+td:first-child {
   text-align: left;
 }
 
 .error {
   color: #b00020;
+}
+
+.detail {
+  color: #6b6b6b;
+  font-size: 0.85rem;
 }
