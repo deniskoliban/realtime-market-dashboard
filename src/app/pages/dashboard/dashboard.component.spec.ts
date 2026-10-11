@@ -1,53 +1,66 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NEVER, Observable } from 'rxjs';
 
 import { Dashboard } from './dashboard.component';
-import { MarketGeneratorService } from '../../services/market-generator.service';
-import { DEFAULT_PRODUCER_SETTINGS } from '../../services/market-worker-protocol.contract';
-import type {
-  InstrumentMetrics,
-  ProducerSettings,
-} from '../../services/market-worker-protocol.contract';
-
-class MockGenerator {
-  readonly startedWith: ProducerSettings[] = [];
-  stops = 0;
-
-  start$(settings: ProducerSettings): Observable<InstrumentMetrics[]> {
-    this.startedWith.push(settings);
-
-    return NEVER;
-  }
-
-  stop(): void {
-    this.stops += 1;
-  }
-}
+import { MarketRunService } from '../../services/market-run-service/market-run.service';
+import { MarketRunServiceMock } from '../../services/market-run-service/market-run.service.mock';
 
 describe('Dashboard', () => {
   let fixture: ComponentFixture<Dashboard>;
-  let generator: MockGenerator;
+  let marketRunService: MarketRunServiceMock;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Dashboard],
-      providers: [MockGenerator, { provide: MarketGeneratorService, useExisting: MockGenerator }],
+      providers: [{ provide: MarketRunService, useValue: new MarketRunServiceMock() }],
     }).compileComponents();
 
-    generator = TestBed.inject(MockGenerator);
+    marketRunService = TestBed.inject(MarketRunService);
     fixture = TestBed.createComponent(Dashboard);
+  });
+
+  function renderedText(): string {
+    return (fixture.nativeElement as HTMLElement).textContent ?? '';
+  }
+
+  function renderedCells(): string[][] {
+    return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr')).map(
+      (row) => Array.from(row.children).map((cell) => (cell.textContent ?? '').trim()),
+    );
+  }
+
+  it('renders the table from the service and shows the failure it reports', async () => {
+    marketRunService.metrics.set([
+      {
+        instrument: 'ALFA',
+        lastTradeCents: 10200,
+        spreadCents: 4,
+        volume: 40,
+        vwapCents: 10150,
+        imbalance: 0.2,
+      },
+      {
+        instrument: 'BETA',
+        lastTradeCents: null,
+        spreadCents: null,
+        volume: 0,
+        vwapCents: null,
+        imbalance: null,
+      },
+    ]);
+
     await fixture.whenStable();
-  });
 
-  it('starts the run with the default settings', () => {
-    fixture.componentInstance.start();
+    const rows = renderedCells();
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toEqual(['ALFA', '$102.00', '$0.04', '40', '$101.50', '0.20']);
+    expect(rows[1]).toEqual(['BETA', '—', '—', '0', '—', '—']);
 
-    expect(generator.startedWith).toEqual([DEFAULT_PRODUCER_SETTINGS]);
-  });
+    marketRunService.failure.set('the generator module is missing');
 
-  it('stops the run', () => {
-    fixture.componentInstance.stop();
+    await fixture.whenStable();
 
-    expect(generator.stops).toBe(1);
+    const text = renderedText();
+    expect(text).toContain('The run stopped after an error.');
+    expect(text).toContain('the generator module is missing');
   });
 });

@@ -1,12 +1,6 @@
 <section>
   <h2>Dashboard</h2>
 
-  <p>producer: {{ updatesPerBatch }} updates every {{ intervalMs }} ms</p>
-  <p>status: {{ status() }} · snapshots received: {{ snapshots() }}</p>
-
-  <button type="button" (click)="start()">start generation</button>
-  <button type="button" (click)="stop()">stop</button>
-
   @if (failure(); as detail) {
     <p class="error">The run stopped after an error.</p>
     <p class="detail">{{ detail }}</p>

@@ -1,19 +1,20 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
 import { Observable, defer, filter, fromEvent, map, merge } from 'rxjs';
 
-import { DEFAULT_PUBLISH_INTERVAL_MS } from './market-worker-protocol.contract';
+import { DEFAULT_PUBLISH_INTERVAL_MS } from '../market-generator-worker/market-generator.worker.contract';
 
 import type {
-  InstrumentMetrics,
-  ProducerSettings,
   WorkerRequest,
   WorkerResponse,
-} from './market-worker-protocol.contract';
+} from '../market-generator-worker/market-generator.worker.contract';
+import type { InstrumentMetrics, ProducerSettings } from '../../core/market.model';
 
 export const MARKET_WORKER = new InjectionToken<Worker>('MARKET_WORKER', {
   providedIn: 'root',
   factory: () =>
-    new Worker(new URL('./market-generator.worker', import.meta.url), { type: 'module' }),
+    new Worker(new URL('../market-generator-worker/market-generator.worker', import.meta.url), {
+      type: 'module',
+    }),
 });
 
 @Injectable({ providedIn: 'root' })

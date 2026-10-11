@@ -1,4 +1,4 @@
-import type { InstrumentMetrics } from '../services/market-worker-protocol.contract';
+import type { InstrumentMetrics } from './market.model';
 import { UpdateField, FLOATS_PER_UPDATE } from './batch-layout.contract';
 
 interface Aggregate {

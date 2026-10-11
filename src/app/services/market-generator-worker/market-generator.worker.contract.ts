@@ -1,23 +1,4 @@
-export interface InstrumentMetrics {
-  instrument: string;
-  lastTradeCents: number | null;
-  spreadCents: number | null;
-  volume: number;
-  vwapCents: number | null;
-  imbalance: number | null;
-}
-
-export interface ProducerSettings {
-  instrumentCount: number;
-  updatesPerBatch: number;
-  batchIntervalMs: number;
-}
-
-export const DEFAULT_PRODUCER_SETTINGS: ProducerSettings = {
-  instrumentCount: 5,
-  updatesPerBatch: 100,
-  batchIntervalMs: 500,
-};
+import type { InstrumentMetrics, ProducerSettings } from '../../core/market.model';
 
 export const DEFAULT_PUBLISH_INTERVAL_MS = 66;
 

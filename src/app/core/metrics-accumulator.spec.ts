@@ -1,5 +1,5 @@
 import { MetricsAccumulator } from './metrics-accumulator';
-import type { InstrumentMetrics } from '../services/market-worker-protocol.contract';
+import type { InstrumentMetrics } from './market.model';
 
 function update(
   instrument: number,

@@ -1,50 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 
 import { MARKET_WORKER, MarketGeneratorService } from './market-generator.service';
-import { DEFAULT_PUBLISH_INTERVAL_MS } from './market-worker-protocol.contract';
-import type {
-  InstrumentMetrics,
-  ProducerSettings,
-  WorkerRequest,
-  WorkerResponse,
-} from './market-worker-protocol.contract';
-
-class MockWorker {
-  readonly sent: WorkerRequest[] = [];
-  private readonly listeners = new Map<string, ((event: unknown) => void)[]>();
-
-  addEventListener(type: string, listener: (event: never) => void): void {
-    const listeners = this.listeners.get(type) ?? [];
-    listeners.push(listener as (event: unknown) => void);
-    this.listeners.set(type, listeners);
-  }
-
-  removeEventListener(type: string, listener: (event: never) => void): void {
-    const listeners = this.listeners.get(type) ?? [];
-    this.listeners.set(
-      type,
-      listeners.filter((entry) => (entry as unknown) !== (listener as unknown)),
-    );
-  }
-
-  postMessage(request: WorkerRequest): void {
-    this.sent.push(request);
-  }
-
-  respond(response: WorkerResponse): void {
-    this.dispatch('message', { data: response });
-  }
-
-  fail(message: string): void {
-    this.dispatch('error', { message });
-  }
-
-  private dispatch(type: string, event: unknown): void {
-    for (const listener of this.listeners.get(type) ?? []) {
-      listener(event);
-    }
-  }
-}
+import { WorkerMock } from '../market-generator-worker/market-generator.worker.mock';
+import { DEFAULT_PUBLISH_INTERVAL_MS } from '../market-generator-worker/market-generator.worker.contract';
+import type { InstrumentMetrics, ProducerSettings } from '../../core/market.model';
 
 const settings: ProducerSettings = {
   instrumentCount: 2,
@@ -75,14 +34,16 @@ const otherMetrics: InstrumentMetrics[] = [
 ];
 
 describe('MarketGeneratorService', () => {
-  let worker: MockWorker;
+  let worker: WorkerMock;
   let service: MarketGeneratorService;
 
   beforeEach(() => {
+    worker = new WorkerMock();
+
     TestBed.configureTestingModule({
-      providers: [MockWorker, { provide: MARKET_WORKER, useExisting: MockWorker }],
+      providers: [{ provide: MARKET_WORKER, useValue: worker }],
     });
-    worker = TestBed.inject(MockWorker);
+
     service = TestBed.inject(MarketGeneratorService);
   });
 

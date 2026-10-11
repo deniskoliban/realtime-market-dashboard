@@ -12,14 +12,10 @@ import {
   tap,
 } from 'rxjs';
 
-import { INSTRUMENT_NAMES } from '../core/instruments.constants';
-import { MetricsAccumulator } from '../core/metrics-accumulator';
-import type {
-  InstrumentMetrics,
-  ProducerSettings,
-  WorkerRequest,
-  WorkerResponse,
-} from './market-worker-protocol.contract';
+import { INSTRUMENT_NAMES } from '../../core/instrument.constants';
+import { MetricsAccumulator } from '../../core/metrics-accumulator';
+import type { WorkerRequest, WorkerResponse } from './market-generator.worker.contract';
+import type { InstrumentMetrics, ProducerSettings } from '../../core/market.model';
 
 const WASM_MODULE_URL = new URL('market_generator_bg.wasm', self.location.href).href;
 const FALLBACK_BATCH_INTERVAL_MS = 500;

@@ -62,7 +62,7 @@
               "fileReplacements": [
                 {
                   "replace": "wasm/pkg/market_generator.js",
-                  "with": "src/app/services/market-generator.mock.ts"
+                  "with": "src/app/services/market-generator-worker/market-generator.mock.ts"
                 }
               ]
             }
