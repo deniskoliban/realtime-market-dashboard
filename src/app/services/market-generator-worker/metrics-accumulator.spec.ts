@@ -76,6 +76,14 @@ describe('MetricsAccumulator', () => {
     expect(accumulator.metrics()[1]).toEqual(unavailable('BETA'));
   });
 
+  it('reports no imbalance when both book quantities are zero', () => {
+    const accumulator = new MetricsAccumulator(['ALFA']);
+
+    accumulator.add(batch(update(0, 9996, 10000, 10000, 10, 0, 0)));
+
+    expect(accumulator.metrics()[0]).toMatchObject({ volume: 10, imbalance: null });
+  });
+
   it('continues the totals across batches', () => {
     const accumulator = new MetricsAccumulator(['ALFA']);
 

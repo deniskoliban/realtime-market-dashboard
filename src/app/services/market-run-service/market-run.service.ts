@@ -13,12 +13,14 @@ export class MarketRunService {
   private readonly destroyRef = inject(DestroyRef);
   private run: Subscription | null = null;
 
+  readonly settings = signal<ProducerSettings | null>(null);
   readonly metrics = signal<InstrumentMetrics[]>([]);
   readonly failure = signal<string | null>(null);
   readonly paused = signal(false);
 
   start(settings: ProducerSettings): void {
     this.run?.unsubscribe();
+    this.settings.set(settings);
     this.failure.set(null);
     this.metrics.set(unavailableMetrics(settings.instrumentCount));
     this.paused.set(false);

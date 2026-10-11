@@ -109,6 +109,25 @@ describe('MarketRunService', () => {
     expect(rows).not.toEqual(metrics);
   });
 
+  it('holds the settings of the run in progress', () => {
+    service.start(settings);
+
+    expect(service.settings()).toEqual(settings);
+
+    service.start(otherSettings);
+
+    expect(service.settings()).toEqual(otherSettings);
+  });
+
+  it('starts the run that replaces it unpaused', () => {
+    service.start(settings);
+
+    service.pause();
+    service.start(otherSettings);
+
+    expect(service.paused()).toBe(false);
+  });
+
   it('reports the run as paused, and as running again after resume', () => {
     service.start(settings);
 

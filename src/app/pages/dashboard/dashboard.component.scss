@@ -1,3 +1,19 @@
+h2 {
+  text-align: center;
+}
+
+.producer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.producer p {
+  margin: 0;
+}
+
 table {
   border-collapse: collapse;
   margin-top: 1rem;
@@ -19,9 +35,20 @@ td:first-child {
 
 .error {
   color: #b00020;
+  text-align: center;
 }
 
 .detail {
   color: #6b6b6b;
   font-size: 0.85rem;
+  text-align: center;
+}
+
+button {
+  padding: 0.45rem 1.25rem;
+  border: 1px solid #e2e2e2;
+  border-radius: 0.25rem;
+  background: #f7f7f7;
+  font: inherit;
+  cursor: pointer;
 }

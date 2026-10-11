@@ -1,11 +1,13 @@
 <section>
   <h2>Dashboard</h2>
 
-  <p>producer: {{ paused() ? 'paused' : 'running' }}</p>
+  <div class="producer">
+    <p>producer: {{ paused() ? 'paused' : 'running' }}</p>
 
-  <button type="button" (click)="togglePause()">
-    {{ paused() ? 'resume' : 'pause' }}
-  </button>
+    <button type="button" (click)="togglePause()">
+      {{ paused() ? 'Resume' : 'Pause' }}
+    </button>
+  </div>
 
   @if (failure(); as detail) {
     <p class="error">The run stopped after an error.</p>

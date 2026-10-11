@@ -15,10 +15,21 @@ export interface ProducerSettings {
   batchIntervalMs: number;
 }
 
+export interface SettingRange {
+  min: number;
+  max: number;
+}
+
 export const DEFAULT_PRODUCER_SETTINGS: ProducerSettings = {
-  instrumentCount: 50,
-  updatesPerBatch: 1000,
-  batchIntervalMs: 50,
+  instrumentCount: 5,
+  updatesPerBatch: 100,
+  batchIntervalMs: 500,
+};
+
+export const PRODUCER_SETTINGS_RANGES: Record<keyof ProducerSettings, SettingRange> = {
+  instrumentCount: { min: 1, max: 50 },
+  updatesPerBatch: { min: 1, max: 1000 },
+  batchIntervalMs: { min: 50, max: 2000 },
 };
 
 export function unavailableMetrics(instrumentCount: number): InstrumentMetrics[] {

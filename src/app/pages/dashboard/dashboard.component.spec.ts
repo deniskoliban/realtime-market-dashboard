@@ -81,4 +81,28 @@ describe('Dashboard', () => {
     expect(text).toContain('The run stopped after an error.');
     expect(text).toContain('the generator module is missing');
   });
+
+  it('drives the pause control through the service', async () => {
+    await fixture.whenStable();
+
+    const button = (fixture.nativeElement as HTMLElement).querySelector('button');
+
+    if (!button) {
+      throw new Error('no pause control');
+    }
+
+    expect(renderedText()).toContain('producer: running');
+
+    button.click();
+    await fixture.whenStable();
+
+    expect(renderedText()).toContain('producer: paused');
+    expect(button.textContent).toContain('resume');
+
+    button.click();
+    await fixture.whenStable();
+
+    expect(renderedText()).toContain('producer: running');
+    expect(button.textContent).toContain('pause');
+  });
 });
