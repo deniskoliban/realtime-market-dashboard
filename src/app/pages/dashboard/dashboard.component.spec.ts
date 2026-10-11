@@ -46,6 +46,10 @@ describe('Dashboard', () => {
     );
   }
 
+  function labelOf(button: HTMLButtonElement): string {
+    return (button.textContent ?? '').trim().toLowerCase();
+  }
+
   it('renders the table from the service and shows the failure it reports', async () => {
     marketRunService.metrics.set([
       {
@@ -97,12 +101,12 @@ describe('Dashboard', () => {
     await fixture.whenStable();
 
     expect(renderedText()).toContain('producer: paused');
-    expect(button.textContent).toContain('resume');
+    expect(labelOf(button)).toBe('resume');
 
     button.click();
     await fixture.whenStable();
 
     expect(renderedText()).toContain('producer: running');
-    expect(button.textContent).toContain('pause');
+    expect(labelOf(button)).toBe('pause');
   });
 });
