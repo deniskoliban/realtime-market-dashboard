@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { MarketGeneratorService } from '../market-generator-service/market-generator.service';
 
 import type { InstrumentMetrics, ProducerSettings } from '../market.model';
+import { unavailableMetrics } from '../market.model';
 
 @Injectable({ providedIn: 'root' })
 export class MarketRunService {
@@ -19,7 +20,7 @@ export class MarketRunService {
   start(settings: ProducerSettings): void {
     this.run?.unsubscribe();
     this.failure.set(null);
-    this.metrics.set([]);
+    this.metrics.set(unavailableMetrics(settings.instrumentCount));
     this.paused.set(false);
 
     this.run = this.generator

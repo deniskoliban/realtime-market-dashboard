@@ -90,7 +90,9 @@ describe('MarketRunService', () => {
 
     service.start(otherSettings);
 
-    expect(service.metrics()).toEqual([]);
+    const rows = service.metrics();
+    expect(rows).toHaveLength(otherSettings.instrumentCount);
+    expect(rows.every((row) => row.volume === 0 && row.lastTradeCents === null)).toBe(true);
     expect(service.failure()).toBeNull();
   });
 
@@ -102,7 +104,9 @@ describe('MarketRunService', () => {
     service.start(otherSettings);
     replaced.next(metrics);
 
-    expect(service.metrics()).toEqual([]);
+    const rows = service.metrics();
+    expect(rows.every((row) => row.volume === 0)).toBe(true);
+    expect(rows).not.toEqual(metrics);
   });
 
   it('reports the run as paused, and as running again after resume', () => {
