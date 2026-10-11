@@ -1,4 +1,4 @@
-import type { InstrumentMetrics, ProducerSettings } from '../../core/market.model';
+import type { InstrumentMetrics, ProducerSettings } from '../market.model';
 
 export const DEFAULT_PUBLISH_INTERVAL_MS = 66;
 
@@ -10,11 +10,12 @@ export interface StartRequest {
   publishIntervalMs: number;
 }
 
-export interface StopRequest {
-  kind: 'stop';
+export interface PauseRequest {
+  kind: 'pause';
+  paused: boolean;
 }
 
-export type WorkerRequest = StartRequest | StopRequest;
+export type WorkerRequest = StartRequest | PauseRequest;
 
 export interface SnapshotResponse {
   kind: 'snapshot';

@@ -1,11 +1,37 @@
 import { TestBed } from '@angular/core/testing';
+import { Observable } from 'rxjs';
 
 import { MarketRunService } from './market-run.service';
 import { MarketGeneratorService } from '../market-generator-service/market-generator.service';
-import { MarketGeneratorServiceMock } from '../market-generator-service/market-generator.service.mock';
-import { DEFAULT_PRODUCER_SETTINGS } from '../../core/market.model';
+import { DEFAULT_PRODUCER_SETTINGS } from '../market.model';
 
-import type { InstrumentMetrics, ProducerSettings } from '../../core/market.model';
+import type { Observer } from 'rxjs';
+import type { InstrumentMetrics, ProducerSettings } from '../market.model';
+
+class MarketGeneratorServiceMock {
+  readonly startedWith: ProducerSettings[] = [];
+  private latest: Observer<InstrumentMetrics[]> | null = null;
+
+  get subscriber(): Observer<InstrumentMetrics[]> {
+    if (this.latest === null) {
+      throw new Error('the producer was not started');
+    }
+
+    return this.latest;
+  }
+
+  start$(settings: ProducerSettings): Observable<InstrumentMetrics[]> {
+    this.startedWith.push(settings);
+
+    return new Observable<InstrumentMetrics[]>((subscriber) => {
+      this.latest = subscriber;
+    });
+  }
+
+  pause(): void {}
+
+  resume(): void {}
+}
 
 const settings: ProducerSettings = DEFAULT_PRODUCER_SETTINGS;
 
@@ -26,69 +52,68 @@ const metrics: InstrumentMetrics[] = [
   },
 ];
 
-const otherMetrics: InstrumentMetrics[] = [
-  {
-    instrument: 'BETA',
-    lastTradeCents: 20000,
-    spreadCents: 4,
-    volume: 20,
-    vwapCents: 20000,
-    imbalance: 0.1,
-  },
-];
-
 describe('MarketRunService', () => {
-  let generatorMock: MarketGeneratorServiceMock;
   let service: MarketRunService;
+  let generator: MarketGeneratorServiceMock;
 
   beforeEach(() => {
-    generatorMock = new MarketGeneratorServiceMock();
+    generator = new MarketGeneratorServiceMock();
 
     TestBed.configureTestingModule({
-      providers: [{ provide: MarketGeneratorService, useValue: generatorMock }],
+      providers: [{ provide: MarketGeneratorService, useValue: generator }],
     });
 
     service = TestBed.inject(MarketRunService);
   });
 
-  it('starts the producer with the applied settings, from an empty state', () => {
+  it('starts the producer with the applied settings, and takes what it published', () => {
     service.start(settings);
 
-    expect(generatorMock.startedWith).toEqual([settings]);
-    expect(service.metrics()).toEqual([]);
-    expect(service.failure()).toBeNull();
+    generator.subscriber.next(metrics);
+
+    expect(generator.startedWith).toEqual([settings]);
+    expect(service.metrics()).toEqual(metrics);
   });
 
-  it('takes the newest snapshot, and clears everything when a new run replaces it', () => {
+  it('reports the failure the producer sent', () => {
     service.start(settings);
 
-    generatorMock.runLatest(metrics);
-    generatorMock.runLatest(otherMetrics);
+    generator.subscriber.error(new Error('the generator module is missing'));
 
-    expect(service.metrics()).toEqual(otherMetrics);
+    expect(service.failure()).toBe('the generator module is missing');
+  });
+
+  it('clears the failure and the values of the run it replaces', () => {
+    service.start(settings);
+    generator.subscriber.next(metrics);
+    generator.subscriber.error(new Error('the generator module is missing'));
 
     service.start(otherSettings);
 
     expect(service.metrics()).toEqual([]);
     expect(service.failure()).toBeNull();
-  });
-
-  it('reports the failure the producer sent and keeps the last metrics', () => {
-    service.start(settings);
-
-    generatorMock.runLatest(metrics);
-    generatorMock.failLatest('the generator module is missing');
-
-    expect(service.failure()).toBe('the generator module is missing');
-    expect(service.metrics()).toEqual(metrics);
   });
 
   it('ignores the results of the run it has replaced', () => {
     service.start(settings);
-    service.start(otherSettings);
 
-    generatorMock.emitTo(0, metrics);
+    const replaced = generator.subscriber;
+
+    service.start(otherSettings);
+    replaced.next(metrics);
 
     expect(service.metrics()).toEqual([]);
+  });
+
+  it('reports the run as paused, and as running again after resume', () => {
+    service.start(settings);
+
+    service.pause();
+
+    expect(service.paused()).toBe(true);
+
+    service.resume();
+
+    expect(service.paused()).toBe(false);
   });
 });

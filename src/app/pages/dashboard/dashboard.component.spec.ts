@@ -1,8 +1,26 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Dashboard } from './dashboard.component';
 import { MarketRunService } from '../../services/market-run-service/market-run.service';
-import { MarketRunServiceMock } from '../../services/market-run-service/market-run.service.mock';
+
+import type { InstrumentMetrics, ProducerSettings } from '../../services/market.model';
+
+class MarketRunServiceMock {
+  readonly metrics = signal<InstrumentMetrics[]>([]);
+  readonly failure = signal<string | null>(null);
+  readonly paused = signal(false);
+
+  start(_settings: ProducerSettings): void {}
+
+  pause(): void {
+    this.paused.set(true);
+  }
+
+  resume(): void {
+    this.paused.set(false);
+  }
+}
 
 describe('Dashboard', () => {
   let fixture: ComponentFixture<Dashboard>;

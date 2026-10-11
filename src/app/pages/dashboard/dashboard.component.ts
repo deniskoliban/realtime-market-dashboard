@@ -12,6 +12,16 @@ import { MarketRunService } from '../../services/market-run-service/market-run.s
 export class Dashboard {
   private readonly marketRunService = inject(MarketRunService);
 
+  readonly paused = this.marketRunService.paused;
   readonly metrics = this.marketRunService.metrics;
   readonly failure = this.marketRunService.failure;
+
+  togglePause(): void {
+    if (this.paused()) {
+      this.marketRunService.resume();
+      return;
+    }
+
+    this.marketRunService.pause();
+  }
 }

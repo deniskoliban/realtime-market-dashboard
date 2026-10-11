@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { MARKET_WORKER, MarketGeneratorService } from './market-generator.service';
-import { WorkerMock } from '../market-generator-worker/market-generator.worker.mock';
-import { DEFAULT_PUBLISH_INTERVAL_MS } from '../market-generator-worker/market-generator.worker.contract';
-import type { InstrumentMetrics, ProducerSettings } from '../../core/market.model';
+import { MARKET_GENERATOR_WORKER, MarketGeneratorService } from './market-generator.service';
+import { DEFAULT_PUBLISH_INTERVAL_MS } from '../market-generator-worker/market-generator.contract';
+
+import type { InstrumentMetrics, ProducerSettings } from '../market.model';
+import type {
+  WorkerRequest,
+  WorkerResponse,
+} from '../market-generator-worker/market-generator.contract';
 
 const settings: ProducerSettings = {
   instrumentCount: 2,
@@ -33,32 +37,68 @@ const otherMetrics: InstrumentMetrics[] = [
   },
 ];
 
+interface WorkerDouble {
+  postMessage: ReturnType<typeof vi.fn>;
+  addEventListener: (type: string, listener: unknown) => void;
+  removeEventListener: (type: string, listener: unknown) => void;
+  respond: (response: WorkerResponse) => void;
+  respondError: (message: string) => void;
+}
+
+function workerDouble(): WorkerDouble {
+  const listeners = new Map<string, ((event: unknown) => void)[]>();
+  const dispatch = (type: string, event: unknown): void => {
+    for (const listener of listeners.get(type) ?? []) {
+      listener(event);
+    }
+  };
+
+  return {
+    postMessage: vi.fn<(request: WorkerRequest) => void>(),
+    respond: (response) => dispatch('message', { data: response }),
+    respondError: (message) => dispatch('error', { message }),
+    addEventListener: (type: string, listener: unknown) => {
+      listeners.set(type, [...(listeners.get(type) ?? []), listener as (event: unknown) => void]);
+    },
+    removeEventListener: (type: string, listener: unknown) => {
+      listeners.set(
+        type,
+        (listeners.get(type) ?? []).filter((entry) => entry !== listener),
+      );
+    },
+  };
+}
+
 describe('MarketGeneratorService', () => {
-  let worker: WorkerMock;
+  let worker: WorkerDouble;
   let service: MarketGeneratorService;
 
   beforeEach(() => {
-    worker = new WorkerMock();
+    worker = workerDouble();
 
     TestBed.configureTestingModule({
-      providers: [{ provide: MARKET_WORKER, useValue: worker }],
+      providers: [{ provide: MARKET_GENERATOR_WORKER, useValue: worker }],
     });
 
     service = TestBed.inject(MarketGeneratorService);
   });
 
-  it('posts start with the settings, and stop on request', () => {
+  it('posts start with the settings, and the pause state on request', () => {
     service.start$(settings).subscribe();
 
-    expect(worker.sent[0]).toMatchObject({
+    expect(worker.postMessage).toHaveBeenNthCalledWith(1, {
       kind: 'start',
+      runId: 1,
+      seed: expect.any(Number),
       settings,
       publishIntervalMs: DEFAULT_PUBLISH_INTERVAL_MS,
     });
 
-    service.stop();
+    service.pause();
+    service.resume();
 
-    expect(worker.sent[1]).toEqual({ kind: 'stop' });
+    expect(worker.postMessage).toHaveBeenNthCalledWith(2, { kind: 'pause', paused: true });
+    expect(worker.postMessage).toHaveBeenNthCalledWith(3, { kind: 'pause', paused: false });
   });
 
   it('delivers each snapshot only to the run that is still listening', () => {
@@ -77,29 +117,30 @@ describe('MarketGeneratorService', () => {
     expect(second).toEqual([otherMetrics]);
   });
 
-  it('reports every failure through the same channel', () => {
+  it('reports the failure the worker sent', () => {
     const failures: string[] = [];
-    const received: InstrumentMetrics[][] = [];
+    service.start$(settings).subscribe({ error: (cause) => failures.push(cause.message) });
 
-    service.start$(settings).subscribe({
-      next: (snapshot) => received.push(snapshot),
-      error: (cause) => failures.push(cause.message),
-    });
     worker.respond({ kind: 'error', runId: 1, detail: 'the generator module is missing' });
 
+    expect(failures).toEqual(['the generator module is missing']);
+  });
+
+  it('reports a failure the worker script raised', () => {
+    const failures: string[] = [];
     service.start$(settings).subscribe({ error: (cause) => failures.push(cause.message) });
-    worker.fail('the generator worker script could not be loaded');
 
+    worker.respondError('the generator worker script could not be loaded');
+
+    expect(failures).toEqual(['the generator worker script could not be loaded']);
+  });
+
+  it('reports a named failure when the worker script raised none', () => {
+    const failures: string[] = [];
     service.start$(settings).subscribe({ error: (cause) => failures.push(cause.message) });
-    worker.fail('');
 
-    worker.respond({ kind: 'snapshot', runId: 1, metrics });
+    worker.respondError('');
 
-    expect(failures).toEqual([
-      'the generator module is missing',
-      'the generator worker script could not be loaded',
-      'The generator worker failed to start.',
-    ]);
-    expect(received).toEqual([]);
+    expect(failures).toEqual(['The generator worker failed to start.']);
   });
 });

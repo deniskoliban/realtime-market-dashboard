@@ -8,7 +8,7 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { MarketRunService } from './services/market-run-service/market-run.service';
-import { DEFAULT_PRODUCER_SETTINGS } from './core/market.model';
+import { DEFAULT_PRODUCER_SETTINGS } from './services/market.model';
 
 export const appConfig: ApplicationConfig = {
   providers: [
