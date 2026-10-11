@@ -11,13 +11,14 @@ form {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  align-items: flex-start;
+  align-items: center;
   margin-top: 1rem;
 }
 
 .field {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.35rem;
   width: 100%;
 }
@@ -25,8 +26,10 @@ form {
 label {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.35rem;
   color: #555;
+  text-align: center;
 }
 
 input {
@@ -47,6 +50,7 @@ input:focus-visible {
   margin: 0;
   color: #b00020;
   font-size: 0.85rem;
+  text-align: center;
 }
 
 .hint {

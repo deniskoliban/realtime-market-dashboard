@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 
 import { Settings } from './settings.component';
 import { MarketRunService } from '../../services/market-run-service/market-run.service';
@@ -16,16 +17,31 @@ class MarketRunServiceMock {
   }
 }
 
+class RouterMock {
+  readonly navigatedTo: unknown[][] = [];
+
+  navigate(commands: unknown[]): Promise<boolean> {
+    this.navigatedTo.push(commands);
+
+    return Promise.resolve(true);
+  }
+}
+
 describe('Settings', () => {
   let fixture: ComponentFixture<Settings>;
   let marketRunService: MarketRunServiceMock;
+  let router: RouterMock;
 
   beforeEach(async () => {
     marketRunService = new MarketRunServiceMock();
+    router = new RouterMock();
 
     await TestBed.configureTestingModule({
       imports: [Settings],
-      providers: [{ provide: MarketRunService, useValue: marketRunService }],
+      providers: [
+        { provide: MarketRunService, useValue: marketRunService },
+        { provide: Router, useValue: router },
+      ],
     }).compileComponents();
   });
 
@@ -151,6 +167,7 @@ describe('Settings', () => {
     };
 
     expect(marketRunService.startedWith).toEqual([applied]);
+    expect(router.navigatedTo).toEqual([['/dashboard']]);
   });
 
   it('does not start a run while a value is out of range', async () => {
@@ -162,5 +179,6 @@ describe('Settings', () => {
     await fixture.whenStable();
 
     expect(marketRunService.startedWith).toEqual([]);
+    expect(router.navigatedTo).toEqual([]);
   });
 });

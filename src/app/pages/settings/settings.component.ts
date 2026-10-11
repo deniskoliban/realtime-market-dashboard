@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormField, form, submit, validate } from '@angular/forms/signals';
 
 import { MarketRunService } from '../../services/market-run-service/market-run.service';
@@ -15,6 +16,7 @@ import type { ProducerSettings } from '../../services/market.model';
 })
 export class Settings {
   private readonly marketRunService = inject(MarketRunService);
+  private readonly router = inject(Router);
 
   private readonly model = signal<ProducerSettings>(
     this.marketRunService.settings() ?? DEFAULT_PRODUCER_SETTINGS,
@@ -29,6 +31,7 @@ export class Settings {
   apply(): void {
     submit(this.settings, async () => {
       this.marketRunService.start(this.model());
+      await this.router.navigate(['/dashboard']);
     });
   }
 }
