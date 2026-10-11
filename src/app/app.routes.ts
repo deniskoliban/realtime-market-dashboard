@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { Dashboard } from './pages/dashboard/dashboard';
-import { Settings } from './pages/settings/settings';
+import { Dashboard } from './pages/dashboard/dashboard.component';
+import { Settings } from './pages/settings/settings.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },

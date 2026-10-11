@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { MARKET_WORKER, MarketGeneratorService } from './market-generator';
-import { DEFAULT_PUBLISH_INTERVAL_MS } from './market-worker-protocol';
+import { MARKET_WORKER, MarketGeneratorService } from './market-generator.service';
+import { DEFAULT_PUBLISH_INTERVAL_MS } from './market-worker-protocol.contract';
 import type {
   InstrumentMetrics,
   ProducerSettings,
   WorkerRequest,
   WorkerResponse,
-} from './market-worker-protocol';
+} from './market-worker-protocol.contract';
 
 class MockWorker {
   readonly sent: WorkerRequest[] = [];
@@ -89,7 +89,11 @@ describe('MarketGeneratorService', () => {
   it('posts start with the settings, and stop on request', () => {
     service.start$(settings).subscribe();
 
-    expect(worker.sent[0]).toMatchObject({ kind: 'start', settings, publishIntervalMs: DEFAULT_PUBLISH_INTERVAL_MS });
+    expect(worker.sent[0]).toMatchObject({
+      kind: 'start',
+      settings,
+      publishIntervalMs: DEFAULT_PUBLISH_INTERVAL_MS,
+    });
 
     service.stop();
 

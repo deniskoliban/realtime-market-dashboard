@@ -20,14 +20,14 @@ first use.
 
 ## Commands
 
-| Command | Result |
-| --- | --- |
-| `npm ci` | install dependencies |
-| `npm run build:wasm` | compile `wasm/src` into `wasm/pkg` |
-| `npm start` | dev server on http://localhost:4200 |
-| `npm test` | unit tests — Vitest via `@angular/build:unit-test` (jsdom); watches in an interactive terminal |
-| `npm run build` | production build in `dist/realtime-market-dashboard/browser` |
-| `cargo test --manifest-path wasm/Cargo.toml` | generator tests, run as plain Rust without WebAssembly |
+| Command                                      | Result                                                                                         |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `npm ci`                                     | install dependencies                                                                           |
+| `npm run build:wasm`                         | compile `wasm/src` into `wasm/pkg`                                                             |
+| `npm start`                                  | dev server on http://localhost:4200                                                            |
+| `npm test`                                   | unit tests — Vitest via `@angular/build:unit-test` (jsdom); watches in an interactive terminal |
+| `npm run build`                              | production build in `dist/realtime-market-dashboard/browser`                                   |
+| `cargo test --manifest-path wasm/Cargo.toml` | generator tests, run as plain Rust without WebAssembly                                         |
 
 `wasm/pkg` is generated and not committed. `npm start`, `npm test` and `npm run build` rebuild it
 first, so a fresh checkout needs no extra step; `angular.json` copies `market_generator_bg.wasm` from

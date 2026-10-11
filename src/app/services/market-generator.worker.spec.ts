@@ -1,4 +1,8 @@
-import type { ProducerSettings, SnapshotResponse, WorkerResponse } from './market-worker-protocol';
+import type {
+  ProducerSettings,
+  SnapshotResponse,
+  WorkerResponse,
+} from './market-worker-protocol.contract';
 
 const startSettings: ProducerSettings = {
   instrumentCount: 1,

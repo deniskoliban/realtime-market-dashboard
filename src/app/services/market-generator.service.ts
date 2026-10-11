@@ -1,14 +1,14 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
 import { Observable, defer, filter, fromEvent, map, merge } from 'rxjs';
 
-import { DEFAULT_PUBLISH_INTERVAL_MS } from './market-worker-protocol';
+import { DEFAULT_PUBLISH_INTERVAL_MS } from './market-worker-protocol.contract';
 
 import type {
   InstrumentMetrics,
   ProducerSettings,
   WorkerRequest,
   WorkerResponse,
-} from './market-worker-protocol';
+} from './market-worker-protocol.contract';
 
 export const MARKET_WORKER = new InjectionToken<Worker>('MARKET_WORKER', {
   providedIn: 'root',

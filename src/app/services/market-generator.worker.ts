@@ -12,14 +12,14 @@ import {
   tap,
 } from 'rxjs';
 
-import { INSTRUMENT_NAMES } from '../core/instruments';
+import { INSTRUMENT_NAMES } from '../core/instruments.constants';
 import { MetricsAccumulator } from '../core/metrics-accumulator';
 import type {
   InstrumentMetrics,
   ProducerSettings,
   WorkerRequest,
   WorkerResponse,
-} from './market-worker-protocol';
+} from './market-worker-protocol.contract';
 
 const WASM_MODULE_URL = new URL('market_generator_bg.wasm', self.location.href).href;
 const FALLBACK_BATCH_INTERVAL_MS = 500;
@@ -39,7 +39,12 @@ addEventListener('message', (event: MessageEvent<WorkerRequest>) => {
   }
 });
 
-function start(runId: number, seed: number, settings: ProducerSettings, publishIntervalMs: number): void {
+function start(
+  runId: number,
+  seed: number,
+  settings: ProducerSettings,
+  publishIntervalMs: number,
+): void {
   stop.next();
 
   const accumulator = new MetricsAccumulator(INSTRUMENT_NAMES.slice(0, settings.instrumentCount));

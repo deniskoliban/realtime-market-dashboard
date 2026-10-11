@@ -1,10 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NEVER, Observable } from 'rxjs';
 
-import { Dashboard } from './dashboard';
-import { MarketGeneratorService } from '../../services/market-generator';
-import { DEFAULT_PRODUCER_SETTINGS } from '../../services/market-worker-protocol';
-import type { InstrumentMetrics, ProducerSettings } from '../../services/market-worker-protocol';
+import { Dashboard } from './dashboard.component';
+import { MarketGeneratorService } from '../../services/market-generator.service';
+import { DEFAULT_PRODUCER_SETTINGS } from '../../services/market-worker-protocol.contract';
+import type {
+  InstrumentMetrics,
+  ProducerSettings,
+} from '../../services/market-worker-protocol.contract';
 
 class MockGenerator {
   readonly startedWith: ProducerSettings[] = [];

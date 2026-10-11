@@ -1,5 +1,5 @@
-import type { InstrumentMetrics } from '../services/market-worker-protocol';
-import { UpdateField, FLOATS_PER_UPDATE } from './batch-layout';
+import type { InstrumentMetrics } from '../services/market-worker-protocol.contract';
+import { UpdateField, FLOATS_PER_UPDATE } from './batch-layout.contract';
 
 interface Aggregate {
   volume: number;
@@ -37,7 +37,8 @@ export class MetricsAccumulator {
       }
 
       aggregate.volume += batch[offset + UpdateField.TradeQuantity];
-      aggregate.notionalCents += batch[offset + UpdateField.TradePrice] * batch[offset + UpdateField.TradeQuantity];
+      aggregate.notionalCents +=
+        batch[offset + UpdateField.TradePrice] * batch[offset + UpdateField.TradeQuantity];
       aggregate.lastTradeCents = batch[offset + UpdateField.TradePrice];
       aggregate.bidCents = batch[offset + UpdateField.Bid];
       aggregate.askCents = batch[offset + UpdateField.Ask];

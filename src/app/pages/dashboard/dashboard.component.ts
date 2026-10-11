@@ -3,15 +3,15 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
-import { MarketGeneratorService } from '../../services/market-generator';
-import { DEFAULT_PRODUCER_SETTINGS } from '../../services/market-worker-protocol';
-import type { InstrumentMetrics } from '../../services/market-worker-protocol';
+import { MarketGeneratorService } from '../../services/market-generator.service';
+import { DEFAULT_PRODUCER_SETTINGS } from '../../services/market-worker-protocol.contract';
+import type { InstrumentMetrics } from '../../services/market-worker-protocol.contract';
 
 @Component({
   selector: 'app-dashboard',
   imports: [CurrencyPipe, DecimalPipe],
-  styleUrl: './dashboard.scss',
-  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.component.scss',
+  templateUrl: './dashboard.component.html',
 })
 export class Dashboard {
   private readonly generator = inject(MarketGeneratorService);
